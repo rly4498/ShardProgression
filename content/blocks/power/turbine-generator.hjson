@@ -1,0 +1,28 @@
+size: 3
+floating: true
+fillsTile: false
+hasShadow: false
+
+hasItems: true
+hasLiquids: true
+liquidCapacity: 30
+
+consumes: {
+  liquid: water/0.15
+}
+
+requirements: [
+  lead/100
+  graphite/45
+  silicon/65
+  plastanium/45
+  metaglass/70
+]
+category: power
+research: {
+  parent: hydro-generator
+  objectives: [
+    differential-generator
+    //steam-generator
+  ]
+}

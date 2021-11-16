@@ -1,0 +1,21 @@
+size: 2
+floating: true
+fillsTile: false
+hasShadow: false
+
+powerProduction: 0.6
+
+requirements: [
+  copper/35
+  lead/40
+  silicon/25
+  metaglass/40
+]
+category: power
+research: {
+  parent: thermal-generator
+  objectives: [
+    steam-generator
+    //sectorComplete: ruinousShores
+  ]
+}
