@@ -1,0 +1,6 @@
+type:OreBlock
+itemDrop: silver
+
+oreDefault: true
+oreThreshold: 0.8475
+oreScale: 24.36

@@ -1,0 +1,6 @@
+type: OreBlock
+itemDrop: raw-tin
+
+oreDefault: true
+oreThreshold: 0.862
+oreScale: 24.44

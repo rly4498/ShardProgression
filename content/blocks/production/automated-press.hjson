@@ -1,0 +1,30 @@
+size: 4
+
+craftTime: 69
+liquidCapacity: 80
+hasLiquids: true
+hasPower: true
+update: true
+boostScale: 0.2
+maxBoost: 2
+baseEfficiency: 0
+attribute: water
+
+consumes:{
+power: 1.5
+liquid:water/0.1
+}
+outputItem:{
+item: graphite
+amount: 1
+}
+
+requirements:[
+copper/85
+lead/40
+graphite/30
+silicon/40
+metaglass/25
+]
+category: crafting
+research: laser-drill

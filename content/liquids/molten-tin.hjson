@@ -1,0 +1,7 @@
+viscosity: 0.8
+temperature: 1
+effect: melting
+
+color: cbcdcd
+barColor: cbcdcd
+lightColor: ff0000

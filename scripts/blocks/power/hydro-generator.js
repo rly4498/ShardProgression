@@ -21,14 +21,13 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
   },
 
   wAttribute(tile, tblock){
-    let prod = this.waterProd;
-    let count = 0;
+    let prod = this.waterProd, count = 0;
     let block = tblock.tempTiles !== undefined ? tblock : tblock.tile.block();
     
     tile.getLinkedTilesAs(block, block.tempTiles).each(cTile => {
       let cFloor = cTile.floor();
       if(this.isWater(cFloor)){
-          count += cFloor.isDeep() && cFloor !== tw ? prod + (prod / 2) : prod;
+        count += cFloor.isDeep() && cFloor !== tw ? prod + (prod / 2) : prod;
       }
     });
     return count;
@@ -41,18 +40,16 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
       ));
   },
 
-  count: 0,
   drawPlace(x, y, rotation, valid){
     let isPlaced = rotation == 4 ? true : false;
-    let size = this.size;
+    let size = this.size, count = 0;
     let t = Vars.world.tile(x, y);
 
 		if(t != null){
-      this.count = this.wAttribute(t, this);
+      if(!isPlaced) count = this.wAttribute(t, this);
       
       for(let i = 0; i < size; i++){
-        let cornerX = x + (size - 1 ) / 2;
-		    let cornerY = y + (size - 1 ) / 2;
+        let cornerX = x + (size - 1) / 2, cornerY = y + (size - 1) / 2;
         let point = Tmp.p1;
           
         for(let j = 0; j < 4; j++){
@@ -69,24 +66,23 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
             
           if(nt != null){
             let lcolor = valid ? Pal.placing : Pal.remove;
-            if(nt.block() !== Blocks.air && nt.block().solid && this.isWater(nt.floor())){
-              lcolor = Pal.remove;
+            if(nt.block() !== Blocks.air && nt.block().solid &&
+             this.isWater(nt.floor())){
+              color = Pal.remove;
               let penaltyMultiplier = nt.block().size > 1 ? 2 : 1;
-              this.count -= hg.waterPenalty * penaltyMultiplier;
+              count -= hg.waterPenalty * penaltyMultiplier;
             }
             
             Drawf.dashLine(lcolor, point.x * tilesize, point.y * tilesize, (point.x + Geometry.d4x[Mathf.mod(j, 4)]) * tilesize, (point.y + Geometry.d4y[Mathf.mod(j, 4)]) * tilesize);
             }
           }
         }
-        
-        t.getLinkedTilesAs(this, this.tempTiles).each(cTile => {
-          if(!isPlaced && this.isWater(cTile.floor())){
-            let v = valid && this.count > 0 ? true : false;
-            this.drawPlaceText(Core.bundle.formatFloat("bar.efficiency", this.count * 100, 1), x, y + 2, v);
-          }
-        });
-    }
+
+        if(!isPlaced){
+          let v = valid && count > 0 ? true : false;
+          this.drawPlaceText(Core.bundle.formatFloat("bar.efficiency", count * 100, 1), x, y, v);
+        }
+      }
   },
     
   setStats(){
@@ -105,8 +101,8 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
 	setBars(){
     this.super$setBars();
     this.bars.add("efficiency", func(e => new Bar(prov(() =>
-    Core.bundle.format("bar.efficiency", Mathf.floor(this.count * 100))),
-    prov(() => Pal.lightOrange), floatp(() => this.count))));
+    Core.bundle.format("bar.efficiency", Mathf.floor(e.productionEfficiency * 100))),
+    prov(() => Pal.lightOrange), floatp(() => e.productionEfficiency))));
   },  
     
   icons(){
@@ -118,48 +114,45 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
 });
 
 hg.buildType = () => extend(PowerGenerator.GeneratorBuild, hg, {
-  count: 0,
+
   onProximityUpdate(){
     this.super$onProximityUpdate();
-    this.count = hg.wAttribute(this.tile, this);
+    let count = hg.wAttribute(this.tile, this);
     let size = hg.size;
     
-    if(this.count > 0){
-      for(let i = 0; i < size; i++){
-        let cornerX = (this.x / 8) - ((size - 1) / 2);
-        let cornerY = (this.y / 8) - ((size - 1) / 2);
-        let point = Tmp.p1;
+    for(let i = 0; i < size; i++){
+      let cornerX = (this.x / 8) - ((size - 1) / 2), cornerY = (this.y / 8) - ((size - 1) / 2);
+      let point = Tmp.p1;
         
-        for(let j = 0; j < 4; j++){
-          switch(j){
-            case 0: point.set(cornerX + size, cornerY + i);
-            break;
-            case 1: point.set(cornerX + i, cornerY + size); 
-            break;
-            case 2: point.set(cornerX - 1, cornerY + i); 
-            break;
-            case 3: point.set(cornerX + i, cornerY - 1);
-          }
-          let t = Vars.world.tile(point.x, point.y);
+      for(let j = 0; j < 4; j++){
+        switch(j){
+          case 0: point.set(cornerX + size, cornerY + i);
+          break;
+          case 1: point.set(cornerX + i, cornerY + size); 
+          break;
+          case 2: point.set(cornerX - 1, cornerY + i); 
+          break;
+          case 3: point.set(cornerX + i, cornerY - 1);
+        }
+        let t = Vars.world.tile(point.x, point.y);
           
-          if(t != null){           
-            if(t.block() !== Blocks.air && t.block().solid &&
-            hg.isWater(t.floor())){
-              let penaltyMultiplier = t.block().size > 1 ? 2 : 1;
-              this.count -= hg.waterPenalty * penaltyMultiplier
+        if(t != null){           
+          if(t.block() !== Blocks.air && t.block().solid &&
+          hg.isWater(t.floor())){
+            let penaltyMultiplier = t.block().size > 1 ? 2 : 1;
+            count -= hg.waterPenalty * penaltyMultiplier;
             }
           }
         }
       }
-    }
-    
-    this.productionEfficiency = this.count > 0 ? this.count : 0;
-   },
+      
+      this.productionEfficiency = count > 0 ? count : 0;
+  },
 
   rSpeed: 0,
   fSpeed: 0,
   updateTile(){
-    let rotateSpeed = this.count * 2 / 2;
+    let rotateSpeed = this.productionEfficiency * 2 / 2;
     this.rSpeed = Mathf.lerpDelta(this.rSpeed, this.productionEfficiency >= 0.2 ? rotateSpeed : 0, 0.05);
     this.fSpeed += this.rSpeed * Time.delta;
   },

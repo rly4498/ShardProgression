@@ -1,0 +1,30 @@
+type: GenericSmelter
+size: 3
+
+craftTime: 90
+liquidCapacity: 30
+hasLiquids: true
+hasPower: true
+craftEffect: smeltsmoke
+
+consumes:{
+items:{
+  items:[
+  copper/2
+   ]
+ }
+liquid: molten-tin/0.025
+power: 1.8
+}
+outputItem:{
+item: bronze-alloy
+amount: 2
+}
+
+requirements:[
+lead/40
+titanium/75
+silicon/45
+]
+category: crafting
+research: blast-furnace

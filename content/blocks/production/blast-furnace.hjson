@@ -1,0 +1,30 @@
+type: GenericSmelter
+size: 3
+
+craftTime: 80
+liquidCapacity: 15
+hasLiquids: true
+hasPower: true
+craftEffect: smeltsmoke
+
+consumes:{
+ items:{
+   items:[
+   coal/2
+   raw-tin/3
+   ]
+  }
+  power: 1
+}
+outputLiquid:{
+liquid: molten-tin
+amount: 3.4
+}
+
+requirements:[
+titanium/65
+copper/40
+silicon/45
+]
+category:crafting
+research: melter

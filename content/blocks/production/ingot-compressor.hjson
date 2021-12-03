@@ -1,0 +1,25 @@
+type: GenericCrafter
+size: 2
+
+craftTime: 90
+hasLiquids: true
+hasPower: true
+updateEffect: pulverize
+craftEffect: pulverizeRed
+
+consumes:{
+liquid: molten-tin/0.021
+power: 1
+}
+outputItem:{
+item: tin-ingot
+amount: 2
+}
+
+requirements:[
+lead/90
+graphite/45
+titanium/70
+]
+category: crafting
+research: blast-furnace
