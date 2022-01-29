@@ -1,0 +1,41 @@
+ammoTypes: {
+    scrap: flakScrap
+    lead: flakLead
+    metaglass: flakGlass
+    raw-tin: {
+    type: FlakBulletType
+        lifetime: 60
+        speed: 4.6
+        ammoMultiplier: 5
+        reloadMultiplier: 0.8
+        width: 6
+        height: 8
+        
+        damage: 3
+        splashDamage: 33
+        splashDamageRadius: 16
+        knockback: 1
+        fragBullets: 6
+        fragBullet: {
+            type: BasicBulletType
+            collidesGround: false
+            lifetime: 22
+            speed: 4
+            width: 7.5
+            height: 11.5
+            shrinkY: 1
+            damage: 2
+            status: shards-progress-sudden-slow
+            statusDuration: 9
+            knockback: 0.8
+            impact: true
+            
+            backColor: 454545
+            frontColor: ffffff
+            despawnEffect: none
+        }
+        
+        shootEffect: shootSmall
+        hitEffect: flakExplosion
+    }
+}

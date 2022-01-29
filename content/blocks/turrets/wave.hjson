@@ -1,0 +1,13 @@
+ammoTypes: {
+    water: waterShot
+    slag: slagShot
+    cryofluid: cryoShot
+    oil: oilShot
+    molten-tin: {
+        type: LiquidBulletType
+        liquid: molten-tin
+        damage: 3.60
+        status: melting
+        drag: 0.01
+    }
+}

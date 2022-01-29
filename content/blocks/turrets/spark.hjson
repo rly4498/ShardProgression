@@ -1,0 +1,16 @@
+health: 1440
+size: 3
+configurable: true
+saveConfig: true
+hasItems: false
+hasPower: true
+hasLiquids: true
+
+requirements:[
+    copper/180
+    lead/135
+    silicon/80
+    silver/60
+]
+category: turret
+research: arc

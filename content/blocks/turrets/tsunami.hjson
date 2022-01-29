@@ -1,0 +1,19 @@
+ammoTypes: {
+    water: heavyWaterShot
+    slag: heavySlagShot
+    cryofluid: heavyCryoShot
+    oil: heavyOilShot
+    molten-tin: {
+        type: LiquidBulletType
+        liquid: molten-tin
+        lifetime: 49
+        speed: 4
+        drag: 0.0011
+
+        damage: 5
+        ammoMultiplier: 0.4
+        status: melting
+        statusDuration: 240
+        knockback: 1.35
+    }
+}
