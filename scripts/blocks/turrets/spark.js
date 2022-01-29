@@ -27,7 +27,7 @@ const spark = extendContent(Turret, "spark", {
   reloadTime: 60,
   chargeTime: 60,
   chargeMaxDelay: 40,
-  powerUse: 0,
+  powerUse: 12,
 
   toggleTime: 60 * 3.5,
   extendInterp: Interp.pow4In,
