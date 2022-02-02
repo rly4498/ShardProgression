@@ -49,20 +49,6 @@ const arcTrail = new Effect(12, e => {
   });
 });
 
-/*const orbHit = new Effect(18, e => {
-  Draw.color(Color.white, Pal.lancerLaser, e.fin());
-
-  e.scaled(16, s => {
-    Lines.stroke(s.fout() + 1.2);
-    Lines.circle(e.x, e.y, s.fin() * 44);
-  });
-
-  Lines.stroke(e.fout() * 1.5 + 0.5);
-  Angles.randLenVectors(e.id, 8, e.finpow() * 44, (x, y) => {
-    Lines.lineAngle(e.x + x, e.y + y, Mathf.angle(x, y), e.fin() * 7 + 2);
-  });
-});*/
-
 let radius = 65;
 const orbHit = new Effect(40, 100, e => {
   e.scaled(10, b => {
@@ -103,88 +89,44 @@ const staticHit = new Effect(18, e => {
   });
 });
 
-const arcFrag3 = extend(LightningBulletType, {
-  lightningDamage: 3,
-  lightningLength: 3,
-  lightningLengthRand: 1,
-  lightningCone: 0
-});
-
-const plholder2 = extend(BulletType, {
-  speed: 2.5,
-  lifetime: 8,
-  hittable: false,
-  absorbable: false,
-  reflectable: false,
-  hitEffect: Fx.none,
-  despawnEffect: Fx.none,
-  
-  damage: 0,
-  fragCone: 0,
-  fragBullets: 1,
-  fragBullet: arcFrag3
-});
-
-const arcFrag2 = extend(LightningBulletType, {
-  lightningDamage: 3,
-  lightningLength: 5.5,
-  lightningLengthRand: 1,
-  lightningCone: 0,
-  
-  fragCone: 0,
-  fragBullets: 1,
-  fragBullet: plholder2
-});
-
-const plholder1 = extend(BulletType, {
-  speed: 5,
-  lifetime: 8,
-  hittable: false,
-  absorbable: false,
-  reflectable: false,
-  hitEffect: Fx.none,
-  despawnEffect: Fx.none,
-  
-  damage: 0,
-  fragCone: 0,
-  fragBullets: 1,
-  fragBullet: arcFrag2
-});
-
-const arcFrag1 = extend(LightningBulletType, {
-  lightningDamage: 3,
-  lightningLength: 8,
-  lightningLengthRand: 1,
-  lightningCone: 0,
-  
-  fragCone: 0,
-  fragBullets: 1,
-  fragBullet: plholder1
-});
-
+/*//turret fields
+    powerUse = powerUse;
+    burstSpacing = burstSpacing;
+    reloadTime = reloadTime;
+    chargeTime = chargeTime; 
+    chargeMaxDelay = chargeMaxDelay;
+    shots = shots;
+    //turret effects & visual
+    chargeBeginEffect = tEffects[0];
+    chargeEffect = tEffects[1];
+    chargeEffects = tEffects[2];
+    recoilAmount =  tEffects[3];
+    shootShake =  tEffects[4];
+    restitution =  tEffects[5];
+    cooldown = tEffects[6];
+    barrelExtend = barrelExtend*/
+    
 const staticBullet = extend(BasicBulletType, {
   modeName: "static-shot",
-  reloadTime: 42,
+  powerUse: 10,
+  reloadTime: 24,
   shootEffect: staticShoot,
   tEffects: [Fx.none, Fx.none, 0, 1.2, 1.2, 0.02, 0.02],
   barrelExtend: false,
   shots: 2,
   burstSpacing: 6,
 
-  speed: 5,
+  speed: 7,
   drag:  0.012,
-  lifetime: 47,
+  lifetime: 36,
   hitSize: 10.5,
-  inaccuracy: 8.5,
+  inaccuracy: 1.5,
   hittable: false,
   reflectable: false,
   
-  damage: 40,
+  damage: 50,
   status: StatusEffects.shocked,
   statusDuration: 6,
-  fragBullets: 3,
-  fragBullet: arcFrag1,
-
 
   sprite: "circle-bullet",
   frontColor: Color.white,
@@ -203,6 +145,7 @@ const overshocked = require("others/statuses").SE1;
 //empn't
 const orbBullet = extend(BasicBulletType, {
   modeName: "charge",
+  powerUse: 12,
   reloadTime: 192,
   chargeTime: 60,
   chargeMaxDelay: 45,
@@ -222,9 +165,7 @@ const orbBullet = extend(BasicBulletType, {
   radius: radius,
   maxBuildingTarget: 20,
   status: overshocked,
-  status2: StatusEffects.shocked,
-  statusDuration: 18,
-  statusDuration2: 30,
+  statusDuration: 180,
   timeIncrease: 0,
   timeDuration: 0,
   powerDamageScl: 1,
@@ -268,7 +209,6 @@ const orbBullet = extend(BasicBulletType, {
 
           other.damage(this.damage);
           other.apply(this.status, this.statusDuration);
-          other.apply(this.status2, this.statusDuration2);
           this.hitPowerEffect.at(other.x, other.y, b.angleTo(other), this.hitColor);
           this.chainEffect.at(b.x, b.y, 0, this.hitColor, other);
         }

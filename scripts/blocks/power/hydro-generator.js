@@ -95,7 +95,7 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
       }
     });
     
-    this.stats.add(Stat.affinities, "40% to 70% [scarlet]-Efficiency[] per nearby blocks (scales with nearby block size)");
+    this.stats.add(Stat.affinities, hg.waterPenalty * 100 + "% to " + hg.waterPenalty * 100 * 2 + "% [scarlet]-Efficiency[] per nearby blocks (scales with nearby block size)");
   },
 
 	setBars(){

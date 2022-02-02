@@ -18,6 +18,10 @@ const staticShotMode = extend(StatusEffect, "static-shot-icon", {
 
 importPackage(java.lang);
 
+function nFixed(num, place){
+  return parseFloat(num.toFixed(place));
+}
+
 const spark = extendContent(Turret, "spark", {
   trBarrel: new Vec2(),
   shootCone: 30,
@@ -27,7 +31,7 @@ const spark = extendContent(Turret, "spark", {
   reloadTime: 60,
   chargeTime: 60,
   chargeMaxDelay: 40,
-  powerUse: 12,
+  togglePowerUse: 6,
 
   toggleTime: 60 * 3.5,
   extendInterp: Interp.pow4In,
@@ -51,13 +55,31 @@ const spark = extendContent(Turret, "spark", {
 
   setStats(){
     this.super$setStats();
+    this.stats.remove(Stat.powerUse);
+    this.stats.remove(Stat.reload);
+
+    for(let i = 0, reload = "", powerUse = ""; i < this.shootTypes.length; i++){
+      let ammo = this.shootTypes[i], shots = ammo.shots != undefined ? ammo.shots : spark.shots;
+      let isLast = this.shootTypes.length - (i + 1) == 0;
+      reload += nFixed(60 / (ammo.reloadTime) * (this.alternate ? 1 : shots), 3) + " " + StatUnit.perSecond.localized() + 
+      (isLast ? "" : " /\n");
+      powerUse +=  + ammo.powerUse * 60 + " " + StatUnit.powerSecond.localized() + (isLast ? "" : " /\n");
+      (isLast ? "" : " /\n");
+
+      if(isLast){
+        this.stats.add(Stat.reload, reload);
+        this.stats.add(Stat.powerUse, powerUse)
+      };
+    }
+
     this.stats.add(Stat.ammo, StatValues.ammo(ObjectMap.of(chargeMode, orbBullet)));
     this.stats.add(Stat.ammo, StatValues.ammo(ObjectMap.of(staticShotMode, staticBullet)));
 
   },
 
   init(){
-    this.consumes.powerCond(this.powerUse, build => build.isActive());
+    
+    this.consumes.powerDynamic(build => build.requestedPowerUse());
     this.super$init();
   },
 
@@ -69,12 +91,20 @@ const spark = extendContent(Turret, "spark", {
     this.leftBarrelOutlineRegion = Core.atlas.find(this.name + "-barrel1-outline");
     this.rightBarrelOutlineRegion = Core.atlas.find(this.name + "-barrel2-outline");
   },
+  //i gave up
+  drawRequestConfig(req, list){
+    if(req.config == null || req.config != 1) return;
+    let region = Core.atlas.find("shards-progress-spark-icon" + (req.config + 1));
+    
+    Draw.rect(this.baseRegion, req.drawx(), req.drawy());
+    Draw.rect(region, req.drawx(), req.drawy());
+  },
 
   icons(){
     this.super$icons();
     return [
       this.baseRegion,
-      Core.atlas.find(this.name + "-icon"),
+      Core.atlas.find(this.name + "-icon" + 1),
     ]
   },
 });
@@ -90,6 +120,12 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
   bDisabled: false,
   table: undefined,
   
+  requestedPowerUse(){
+    if(this.isToggling()) return spark.togglePowerUse;
+    if(this.isActive()) return this.currentAmmo.powerUse;
+    return 0;
+  },
+
   bPressed(table){
     if(table instanceof Table) this.table = table;
     this.bDisabled = true;
@@ -107,22 +143,6 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
   },
     
   toggleMode(){
-    /*//turret fields
-    powerUse = powerUse;
-    burstSpacing = burstSpacing;
-    reloadTime = reloadTime;
-    chargeTime = chargeTime; 
-    chargeMaxDelay = chargeMaxDelay;
-    shots = shots;
-    //turret effects & visual
-    chargeBeginEffect = tEffects[0];
-    chargeEffect = tEffects[1];
-    chargeEffects = tEffects[2];
-    recoilAmount =  tEffects[3];
-    shootShake =  tEffects[4];
-    restitution =  tEffects[5];
-    cooldown = tEffects[6];
-    barrelExtend = barrelExtend*/
     this.currentAmmo = spark.shootTypes[this.cMode];
   },
   
@@ -164,7 +184,6 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
   onConfigureTileTapped(other){
     if(this == other){
       this.deselect();
-      this.configure(null);
       return false;
     }
     return true;
@@ -214,7 +233,11 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
   peekAmmo(){
     return this.currentAmmo;
   },
-  
+
+  isToggling(){
+    return this.toggleProgress > 0;
+  },
+
   toggleProgress: 0,
   updateTile(){
     this.updateToggling();
@@ -263,7 +286,7 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
         
         this.targetRot = this.angleTo(this.targetPos);
           
-        if(this.shouldTurn()){
+        if(this.shouldTurn() && !this.isToggling()){
           this.turnToTarget(this.targetRot);
         }
   
@@ -278,7 +301,7 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
       this.updateCooling();
     }
   },
-  
+
   updateShooting(){
     let type = this.currentAmmo;
     this.reload += this.delta() * type.reloadMultiplier * this.baseReloadSpeed();
@@ -416,11 +439,11 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
    },
   
    readAll(read, revision){
-     this.super$readAll(read, revision);
+    this.super$readAll(read, revision);
   
-     if(revision == 1){
-       this.bDisabled = read.bool();
-       this.extended = read.bool();
-     }
-   }
+    if(revision == 1){
+      this.bDisabled = read.bool();
+      this.extended = read.bool();
+    }
+  }
 });
