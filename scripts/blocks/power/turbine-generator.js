@@ -63,7 +63,16 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
     let attr = [count, amount];
     return attr;
   },
-  
+
+  onWater: false,
+  getRequestRegion(req, list){
+    if(!this.onWater){
+      return Core.atlas.find(this.name + "-icon1");
+    }
+
+    return Core.atlas.find(this.name + "-icon2");
+  },
+
   getNearbyPos(x, y, rotation, i, out){
     let s = this.size;
     let cornerX = x - (s - 1) / 2;
@@ -85,14 +94,16 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
     let isPlaced = rotation == 4 ? true : false;
     let size = this.size, t = Vars.world.tile(x, y);
     let amount = 0;
+    this.onWater = false;
     
 		if(t != null){
       if(!isPlaced){
         let attr = this.wAttribute(t, this);
         this.count = 0, this.count = attr[0], amount = attr[1];
       }
-		  
+
 		  if(this.count > 0 || amount > 0){
+        this.onWater = true;
 		    for(let i = 0; i < size; i++){
           for(let j = 0; j < 4; j++){
             let point = Tmp.p1;
@@ -173,7 +184,7 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
   icons(){
     return [
       this.region,
-      Core.atlas.find(this.name + "-icon")
+      Core.atlas.find(this.name + "-icon1")
       ];
   }
 });
@@ -228,7 +239,7 @@ tg.buildType = () => extend(PowerGenerator.GeneratorBuild, tg, {
     this.heat = Mathf.lerpDelta(this.heat, this.generateTime >= 0.001 && this.consValid() ? 1 : 0, 0.05);
     this.totalTime += this.heat * Time.delta;
     this.tile.getLinkedTilesAs(this.tile.block(), this.tile.block().tempTiles).each(cTile => {
-       this.onWater = tg.isWater(cTile) ? true : false;
+       this.onWater = tg.isWater(cTile.floor());
     }); 
 
     if(this.amount > 0){

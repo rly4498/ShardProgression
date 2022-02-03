@@ -5,14 +5,22 @@ const overshocked = extend(StatusEffect, "overshocked", {
     speedMultiplier: 0.9,
     appliedStatus: StatusEffects.shocked,
     appliedStatusDuration: 30,
-    statusPerTick: 24, //could be named better
+    TickPerStatus: 24, 
 
+    setStats(){
+        this.super$setStats();
+        
+        this.stats.add(Stat.affinities, "Applies " + this.appliedStatus.emoji() + "[accent]" + this.appliedStatus.toString() + "[] every " +  this.TickPerStatus / 60 + " seconds")
+    },
+
+    timer: 0,
     update(unit, time){
         this.super$update(unit, time);
-        let fTime = time >= 10 ? parseFloat(time.toFixed(3)) : parseFloat(time.toFixed(2));
+        this.timer += 1;
 
-        if(fTime % this.statusPerTick == 0){
+        if(this.timer >= this.TickPerStatus){
             unit.apply(this.appliedStatus, this.appliedStatusDuration);
+            this.timer = 0;
         }
     }
     

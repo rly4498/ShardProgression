@@ -61,17 +61,16 @@ const spark = extendContent(Turret, "spark", {
     for(let i = 0, reload = "", powerUse = ""; i < this.shootTypes.length; i++){
       let ammo = this.shootTypes[i], shots = ammo.shots != undefined ? ammo.shots : spark.shots;
       let isLast = this.shootTypes.length - (i + 1) == 0;
-      reload += nFixed(60 / (ammo.reloadTime) * (this.alternate ? 1 : shots), 3) + " " + StatUnit.perSecond.localized() + 
-      (isLast ? "" : " /\n");
-      powerUse +=  + ammo.powerUse * 60 + " " + StatUnit.powerSecond.localized() + (isLast ? "" : " /\n");
-      (isLast ? "" : " /\n");
+      reload += " [lightgray]" + Core.bundle.get("status.shards-progress-" + ammo.modeName + ".name") + "[]: " + 
+      nFixed(60 / (ammo.reloadTime) * (this.alternate ? 1 : shots), 3) + " " + StatUnit.perSecond.localized() + " \n";
+      powerUse +=  " [lightgray]" + Core.bundle.get("status.shards-progress-" + ammo.modeName + ".name") + "[]: " + ammo.powerUse * 60 + " " 
+      + StatUnit.powerSecond.localized() + " \n";
 
       if(isLast){
         this.stats.add(Stat.reload, reload);
-        this.stats.add(Stat.powerUse, powerUse)
+        this.stats.add(Stat.powerUse, powerUse + "\n[lightgray]Toggling Power Use:[] " + this.togglePowerUse * 60 + " " + StatUnit.powerSecond.localized());
       };
     }
-
     this.stats.add(Stat.ammo, StatValues.ammo(ObjectMap.of(chargeMode, orbBullet)));
     this.stats.add(Stat.ammo, StatValues.ammo(ObjectMap.of(staticShotMode, staticBullet)));
 
@@ -86,12 +85,15 @@ const spark = extendContent(Turret, "spark", {
   load(){
     this.super$load();
     this.region = Core.atlas.find(this.name);
+    this.heatRegion = Core.atlas.find(this.name + "-heat");
     this.leftBarrelRegion = Core.atlas.find(this.name + "-barrel1");
     this.rightBarrelRegion = Core.atlas.find(this.name + "-barrel2");
+    this.leftBarrelHeatRegion = Core.atlas.find(this.name + "-barrel1-heat");
+    this.rightBarrelHeatRegion = Core.atlas.find(this.name + "-barrel2-heat")
     this.leftBarrelOutlineRegion = Core.atlas.find(this.name + "-barrel1-outline");
     this.rightBarrelOutlineRegion = Core.atlas.find(this.name + "-barrel2-outline");
   },
-  //i gave up
+
   drawRequestConfig(req, list){
     if(req.config == null || req.config != 1) return;
     let region = Core.atlas.find("shards-progress-spark-icon" + (req.config + 1));
@@ -193,11 +195,16 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
     return this.cMode;
   },
   
-  getBarrelRegion(i, outline){
+  getBarrelRegion(i, outline, heat){
     if(outline){
       switch(i){
         case -1: return spark.leftBarrelOutlineRegion;
         case 1: return spark.rightBarrelOutlineRegion;
+      }
+    }else if(heat){
+      switch(i){
+        case -1: return spark.leftBarrelHeatRegion;
+        case 1: return spark.rightBarrelHeatRegion;
       }
     }else{
       switch(i){
@@ -376,7 +383,6 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
         });
       }
     }else{
-      
       //otherwise, use the normal shot pattern(s)
       if(spark.alternate){
         let i = (this.shotCounter % shots) - (shots-1)/2;
@@ -413,15 +419,30 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
     Drawf.shadow(spark.region, this.x + tr2.x - elevation, this.y + tr2.y - elevation, this.rotation - 90);
     
     for(let i of Mathf.signs){
-      Drawf.shadow(this.getBarrelRegion(i, true), this.x + tr2.x + trBarrelX * i - elevation, this.y + tr2.y + trBarrelY * i - elevation, this.rotation - 90);
-      Draw.rect(this.getBarrelRegion(i, true), this.x + tr2.x + trBarrelX * i, this.y + tr2.y + trBarrelY * i, this.rotation - 90);
+      Drawf.shadow(this.getBarrelRegion(i, true, false), this.x + tr2.x + trBarrelX * i - elevation, this.y + tr2.y + trBarrelY * i - elevation, this.rotation - 90);
+      Draw.rect(this.getBarrelRegion(i, true, false), this.x + tr2.x + trBarrelX * i, this.y + tr2.y + trBarrelY * i, this.rotation - 90);
     }
   
     Draw.rect(spark.region, this.x + tr2.x, this.y + tr2.y, this.rotation - 90);
-  
-      for(let i of Mathf.signs){
-        Draw.rect(this.getBarrelRegion(i, false), this.x + tr2.x + trBarrelX * i, this.y + tr2.y + trBarrelY * i, this.rotation - 90);
+    if(this.heat >= 0.00001){
+      Draw.color(spark.heatColor, this.heat);
+      Draw.blend(Blending.additive);
+      Draw.rect(spark.heatRegion, this.x + tr2.x, this.y + tr2.y, this.rotation - 90);
+      Draw.blend();
+      Draw.color();
+    }
+
+    for(let i of Mathf.signs){
+      Draw.rect(this.getBarrelRegion(i, false, false), this.x + tr2.x + trBarrelX * i, this.y + tr2.y + trBarrelY * i, this.rotation - 90);
+
+      if(this.heat >= 0.00001){
+        Draw.color(spark.heatColor, this.heat);
+        Draw.blend(Blending.additive);
+        Draw.rect(this.getBarrelRegion(i, false, true), this.x + tr2.x + trBarrelX * i, this.y + tr2.y + trBarrelY * i, this.rotation - 90);
+        Draw.blend();
+        Draw.color();
       }
+    }
   },
   
   write(write){
