@@ -224,7 +224,7 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
         case LAccess.shootX: return World.conv(this.targetPos.x);
         case LAccess.shootY: return World.conv(this.targetPos.y);
         case LAccess.shooting: return this.isShooting() ? 1 : 0;
-        case LAccess.progress: return Mathf.clamp(this.reload / this.reloadTime);
+        case LAccess.progress: return Mathf.clamp(this.reload / this.currentAmmo.reloadTime);
         default: this.super$sense(sensor);
       }
     },
