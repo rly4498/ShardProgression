@@ -24,7 +24,6 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
   
   init(){
     this.consumes.add(new ConsumeItemFilter(boolf(item => item.flammability >= this.minItemEfficiency)));
-    
     this.waterProdRate = 108 / (this.powerProduction * 60);
     
     this.super$init();
@@ -157,7 +156,8 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
     let powerProduction = this.powerProduction * 60, prodRate = this.waterProdRate;
     
     this.stats.remove(Stat.basePowerGeneration);
-    this.stats.add(this.generationType, powerProduction * prodRate + " power units/second /\n" + nFixed(powerProduction * (1 -prodRate), 3) + " power units/second");
+    this.stats.add(this.generationType, "  [lightgray]Hydro Base Power Generation:[] " + powerProduction * prodRate + " power units/second /\n" 
+    + "  [lightgray]Steam Base Power Generation:[] " + nFixed(powerProduction * (1 -prodRate), 3) + " power units/second");
     
     this.stats.add(Stat.productionTime, this.itemDuration / 60, StatUnit.seconds);
     

@@ -1,0 +1,10 @@
+health: 1440
+size: 3
+reloadTime: 3
+range: 200
+liquidCapacity: 40
+
+requirements: [
+    copper/69
+]
+category: turret

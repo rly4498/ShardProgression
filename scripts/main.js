@@ -1,4 +1,14 @@
 Vars.enableConsole = true;
+//for streamline's bullet because this runs first before hjson
+const moltenTin = extend(Liquid, "molten-tin", {
+  viscosity: 0.8,
+  temperature: 1,
+  effect: StatusEffects.melting,
+
+  color: Color.valueOf("cbcdcd"),
+  barColor: Color.valueOf("cbcdcd"),
+  lightColor: Color.valueOf("ff0000"),
+});
 
 let scripts = [
   //Blocks-power
@@ -9,7 +19,8 @@ let scripts = [
   "blocks/production/automated-press",
 
   //Blocks-turret
-  "blocks/turrets/spark"
+  "blocks/turrets/spark",
+  "blocks/turrets/streamline"
 ];
 
 scripts.forEach(cont => {

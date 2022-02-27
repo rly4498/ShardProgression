@@ -1,4 +1,4 @@
-//Spark's bullet
+//spark's bullet
 const sparkChargeBegin = new Effect(61, e => {
   Draw.color(Pal.lancerLaser);
   Fill.circle(e.x, e.y, e.fin() * 8);
@@ -217,10 +217,110 @@ const orbBullet = extend(BasicBulletType, {
   }
 });
 
+//streamline's bullets
+const waterJetShot = extend(LiquidBulletType, {
+  liquid: Liquids.water,
+  lifetime: 25,
+  speed: 8,
+  knockback: 1.3,
+  puddleSize: 8,
+  orbSize: 3,
+  drag: 0.001,
+  ammoMultiplier: 0.16,
+  statusDuration: 120,
+  status: Liquids.water.effect,
+  damage: 14,
+
+  trailColor: Liquids.water.color,
+  trailWidth: 3.8,
+  trailLength: 7,
+});
+
+const cryoJetShot = extend(LiquidBulletType, {
+  liquid: Liquids.cryofluid,
+  lifetime: 25,
+  speed: 8,
+  knockback: 2,
+  puddleSize: 8,
+  orbSize: 3,
+  drag: 0.001,
+  ammoMultiplier: 0.16,
+  statusDuration: 180,
+  status: Liquids.cryofluid.effect,
+  damage: 12,
+
+  trailColor: Liquids.cryofluid.color,
+  trailWidth: 3.8,
+  trailLength: 7,
+});
+
+const slagJetShot = extend(LiquidBulletType, {
+  liquid: Liquids.slag,
+  lifetime: 25,
+  speed: 8,
+  knockback: 1.8,
+  puddleSize: 8,
+  orbSize: 3,
+  drag: 0.001,
+  ammoMultiplier: 0.16,
+  statusDuration: 120,
+  status: Liquids.slag.effect,
+  damage: 20,
+
+  trailColor: Liquids.slag.color,
+  trailWidth: 3.8,
+  trailLength: 7,
+});
+
+const oilJetShot = extend(LiquidBulletType, {
+  liquid: Liquids.oil,
+  lifetime: 25,
+  speed: 8,
+  knockback: 2,
+  puddleSize: 8,
+  orbSize: 3,
+  drag: 0.001,
+  ammoMultiplier: 0.16,
+  statusDuration: 180,
+  status: Liquids.oil.effect,
+  damage: 12,
+
+  trailColor: Liquids.oil.color,
+  trailWidth: 3.8,
+  trailLength: 7,
+});
+
+let moltenTin = Vars.content.getByName(ContentType.liquid, "shards-progress-molten-tin");
+const moltenTinJetShot = extend(LiquidBulletType, {
+  liquid: moltenTin,
+  lifetime: 25,
+  speed: 8,
+  knockback: 1.8,
+  puddleSize: 8,
+  orbSize: 3,
+  drag: 0.001,
+  ammoMultiplier: 0.16,
+  statusDuration: 120,
+  status: moltenTin.effect,
+  damage: 16,
+
+  trailColor: moltenTin.color,
+  trailWidth: 3.8,
+  trailLength: 7,
+});
+
+
+
 module.exports = {
   sparkE1: sparkChargeBegin,
   sparkE2: sparkCharge,
   sparkE3: orbShoot,
   sparkB1: orbBullet,
-  sparkB2: staticBullet
+  sparkB2: staticBullet,
+  //streamline
+  streamlineB1: waterJetShot,
+  streamlineB2: cryoJetShot,
+  streamlineB3: slagJetShot,
+  streamlineB4: oilJetShot,
+  streamlineB5: moltenTinJetShot
 };
