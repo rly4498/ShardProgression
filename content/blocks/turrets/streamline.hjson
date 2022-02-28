@@ -1,10 +1,17 @@
 health: 1440
 size: 3
-reloadTime: 3
-range: 200
 liquidCapacity: 40
 
+reloadTime: 3
+range: 200
+
 requirements: [
-    copper/69
+    lead/480
+    metaglass/100
+    silicon/135
+    graphite/100
+    titanium/210
+    thorium/100
 ]
 category: turret
+research: tsunami

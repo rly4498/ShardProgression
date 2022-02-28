@@ -229,7 +229,7 @@ const waterJetShot = extend(LiquidBulletType, {
   ammoMultiplier: 0.16,
   statusDuration: 120,
   status: Liquids.water.effect,
-  damage: 14,
+  damage: 16,
 
   trailColor: Liquids.water.color,
   trailWidth: 3.8,
@@ -247,7 +247,7 @@ const cryoJetShot = extend(LiquidBulletType, {
   ammoMultiplier: 0.16,
   statusDuration: 180,
   status: Liquids.cryofluid.effect,
-  damage: 12,
+  damage: 14,
 
   trailColor: Liquids.cryofluid.color,
   trailWidth: 3.8,
@@ -265,7 +265,7 @@ const slagJetShot = extend(LiquidBulletType, {
   ammoMultiplier: 0.16,
   statusDuration: 120,
   status: Liquids.slag.effect,
-  damage: 20,
+  damage: 22,
 
   trailColor: Liquids.slag.color,
   trailWidth: 3.8,
@@ -283,7 +283,7 @@ const oilJetShot = extend(LiquidBulletType, {
   ammoMultiplier: 0.16,
   statusDuration: 180,
   status: Liquids.oil.effect,
-  damage: 12,
+  damage: 14,
 
   trailColor: Liquids.oil.color,
   trailWidth: 3.8,
@@ -302,7 +302,7 @@ const moltenTinJetShot = extend(LiquidBulletType, {
   ammoMultiplier: 0.16,
   statusDuration: 120,
   status: moltenTin.effect,
-  damage: 16,
+  damage: 18,
 
   trailColor: moltenTin.color,
   trailWidth: 3.8,

@@ -6,7 +6,7 @@ const moltenTinJetShot = require("others/bullets").streamlineB5;
 
 const streamline = extendContent(LiquidTurret, "streamline", {
     minimumChargeTime: 180,
-    maximumChargeTime: 420,
+    maximumChargeTime: 450,
     allowedShootingBarColor: Color.valueOf("33a3ff"),
     defaultBarColor: Pal.lancerLaser,
     shootingBarColor: Pal.remove,
@@ -49,8 +49,6 @@ const streamline = extendContent(LiquidTurret, "streamline", {
       return [
         this.baseRegion,
         this.region,
-        this.topRegion,
-        this.top2Region
       ]
     }
 });
