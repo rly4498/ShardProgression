@@ -43,6 +43,15 @@ const streamline = extendContent(LiquidTurret, "streamline", {
       Core.bundle.format("stats.shards-progress.charge")),
       prov(() => e.barColor()), floatp(() => e.chargeTime() / (this.minimumChargeTime / 60) * 0.01))));
     },
+
+    icons(){
+      return [
+        this.baseRegion,
+        this.region,
+        this.topRegion,
+        this.top2Region
+      ]
+    }
 });
 
 streamline.ammo(
@@ -51,7 +60,6 @@ streamline.ammo(
   Liquids.slag, slagJetShot,
   Liquids.oil, oilJetShot,
   moltenTinJetShot.liquid, moltenTinJetShot 
-
 );
 
 streamline.buildType = () => extend(LiquidTurret.LiquidTurretBuild, streamline, {
