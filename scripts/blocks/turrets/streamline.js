@@ -45,6 +45,7 @@ const streamline = extendContent(LiquidTurret, "streamline", {
     },
 
     icons(){
+      this.super$icons();
       return [
         this.baseRegion,
         this.region,
