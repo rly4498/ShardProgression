@@ -11,7 +11,7 @@ requirements: [
     silicon/135
     graphite/80
     titanium/180
-    bronze/120
+    bronze-alloy/120
 ]
 category: turret
 research: tsunami
