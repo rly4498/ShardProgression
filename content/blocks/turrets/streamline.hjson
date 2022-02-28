@@ -9,9 +9,9 @@ requirements: [
     lead/480
     metaglass/100
     silicon/135
-    graphite/100
-    titanium/210
-    thorium/100
+    graphite/80
+    titanium/180
+    bronze/120
 ]
 category: turret
 research: tsunami
