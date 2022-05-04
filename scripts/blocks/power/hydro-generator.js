@@ -4,7 +4,7 @@ let tilesize = Vars.tilesize;
 const hg = extendContent(PowerGenerator,"hydro-generator", {
   waterProd: 0.5,
   waterPenalty: 0.4,
-
+  maxSizePenalty: 2,
   load(){
     this.super$load();
     this.shadowRegion = Core.atlas.find("shards-progress-custom-shadow");
@@ -13,7 +13,7 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
     this.topRegion = Core.atlas.find(this.name + "-top");
   },
       
-  isWater(floor){
+  isLiquidTile(floor){
     return floor.isLiquid &&
     floor.liquidDrop != null &&
     floor.liquidDrop.canExtinguish() &&
@@ -26,17 +26,32 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
     
     tile.getLinkedTilesAs(block, block.tempTiles).each(cTile => {
       let cFloor = cTile.floor();
-      if(this.isWater(cFloor)){
+      if(this.isLiquidTile(cFloor)){
         count += cFloor.isDeep() && cFloor !== tw ? prod + (prod / 2) : prod;
       }
     });
     return count;
   },
 
+  getNearbyPos(x, y, rotation, i, out){
+    let s = this.size;
+    let cornerX = x + (s - 1) / 2, cornerY = y + (s - 1) / 2;
+
+    switch(rotation){
+      case 0: out.set(cornerX + s, cornerY + i);
+      break;
+      case 1: out.set(cornerX + i, cornerY + s); 
+      break;
+      case 2: out.set(cornerX - 1, cornerY + i); 
+      break;
+      case 3: out.set(cornerX + i, cornerY - 1);
+    }
+  },
+
   canPlaceOn: function(tile){
-		return tile.getLinkedTilesAs(this, this.tempTiles).contains(
+    return tile.getLinkedTilesAs(this, this.tempTiles).contains(
       boolf(cTile => 
-        this.isWater(cTile.floor())
+        this.isLiquidTile(cTile.floor())
       ));
   },
 
@@ -47,29 +62,19 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
 
 		if(t != null){
       if(!isPlaced) count = this.wAttribute(t, this);
-      
+      let point = Tmp.p1;
+
       for(let i = 0; i < size; i++){
-        let cornerX = x + (size - 1) / 2, cornerY = y + (size - 1) / 2;
-        let point = Tmp.p1;
-          
         for(let j = 0; j < 4; j++){
-          switch(j){
-            case 0: point.set(cornerX + size, cornerY + i);
-            break;
-            case 1: point.set(cornerX + i, cornerY + size); 
-            break;
-            case 2: point.set(cornerX - 1, cornerY + i); 
-            break;
-            case 3: point.set(cornerX + i, cornerY - 1);
-          }
+          this.getNearbyPos(x, y, j, i, point);
           let nt = Vars.world.tile(point.x, point.y);
             
           if(nt != null){
             let lcolor = valid ? Pal.placing : Pal.remove;
-            if(nt.block() !== Blocks.air && nt.block().solid &&
-             this.isWater(nt.floor())){
-              color = Pal.remove;
-              let penaltyMultiplier = nt.block().size > 1 ? 2 : 1;
+            if(nt.block() !== Blocks.air && nt.solid() &&
+             this.isLiquidTile(nt.floor())){
+              lcolor = Pal.remove;
+              let penaltyMultiplier = Math.min(nt.block().size, this.maxSizePenalty);
               count -= hg.waterPenalty * penaltyMultiplier;
             }
             
@@ -89,7 +94,7 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
     this.super$setStats();
     let prod = this.waterProd, size = this.size;
     Vars.content.blocks().each(b => {
-      if(this.isWater(b)){
+      if(this.isLiquidTile(b)){
         let efficiency = b.isDeep() && b !== tw ? (prod + (prod / 2)) * size * size : prod * size * size;
         this.stats.add(Stat.tiles, StatValues.blockEfficiency(b, efficiency, true));
       }
@@ -114,32 +119,29 @@ const hg = extendContent(PowerGenerator,"hydro-generator", {
 });
 
 hg.buildType = () => extend(PowerGenerator.GeneratorBuild, hg, {
-
   onProximityUpdate(){
     this.super$onProximityUpdate();
+    this.updateProductionEff();
+  },
+
+  onProximityAdded(){
+    this.super$onProximityAdded();
+    this.updateProductionEff();
+  },
+
+  updateProductionEff(){
     let count = hg.wAttribute(this.tile, this);
-    let size = hg.size;
-    
+    let size = hg.size, point = Tmp.p1;
+
     for(let i = 0; i < size; i++){
-      let cornerX = (this.x / 8) - ((size - 1) / 2), cornerY = (this.y / 8) - ((size - 1) / 2);
-      let point = Tmp.p1;
-        
       for(let j = 0; j < 4; j++){
-        switch(j){
-          case 0: point.set(cornerX + size, cornerY + i);
-          break;
-          case 1: point.set(cornerX + i, cornerY + size); 
-          break;
-          case 2: point.set(cornerX - 1, cornerY + i); 
-          break;
-          case 3: point.set(cornerX + i, cornerY - 1);
-        }
-        let t = Vars.world.tile(point.x, point.y);
+        hg.getNearbyPos(this.tileX(), this.tileY(), j, i, point);
+        let nt = Vars.world.tile(point.x, point.y);
+        if(nt != null){
           
-        if(t != null){           
-          if(t.block() !== Blocks.air && t.block().solid &&
-          hg.isWater(t.floor())){
-            let penaltyMultiplier = t.block().size > 1 ? 2 : 1;
+          if(nt.block() !== Blocks.air && nt.solid() &&
+          hg.isLiquidTile(nt.floor())){   
+            let penaltyMultiplier = Math.min(nt.block().size, hg.maxSizePenalty);
             count -= hg.waterPenalty * penaltyMultiplier;
             }
           }
@@ -151,10 +153,25 @@ hg.buildType = () => extend(PowerGenerator.GeneratorBuild, hg, {
 
   rSpeed: 0,
   fSpeed: 0,
+  lastSolidDoors: 0,
   updateTile(){
+    let solidDoors = 0;
     let rotateSpeed = this.productionEfficiency * 2 / 2;
     this.rSpeed = Mathf.lerpDelta(this.rSpeed, this.productionEfficiency >= 0.2 ? rotateSpeed : 0, 0.05);
     this.fSpeed += this.rSpeed * Time.delta;
+
+    this.proximity.each(nearby => {
+      if(nearby.block instanceof Door || nearby.block.solidifes){
+        if(nearby.checkSolid() && hg.isLiquidTile(nearby.floor())){
+          solidDoors += 1;
+        }
+      } 
+    });
+
+    if(this.lastSolidDoors != solidDoors){
+      this.lastSolidDoors = solidDoors;
+      this.updateProductionEff();
+    }
   },
 
   draw(){

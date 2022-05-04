@@ -20,7 +20,10 @@ let scripts = [
 
   //Blocks-turret
   "blocks/turrets/spark",
-  "blocks/turrets/streamline"
+  "blocks/turrets/streamline",
+
+  //Blocks-defence
+  "blocks/defence/absorber-wall"
 ];
 
 scripts.forEach(cont => {

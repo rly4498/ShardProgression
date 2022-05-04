@@ -40,12 +40,11 @@ const streamline = extendContent(LiquidTurret, "streamline", {
     setBars(){
       this.super$setBars();
       this.bars.add("charge", func(e => new Bar(prov(() =>
-      Core.bundle.format("stats.shards-progress.charge")),
+      Core.bundle.format("stat.shards-progress.charge")),
       prov(() => e.barColor()), floatp(() => e.chargeTime() / (this.minimumChargeTime / 60) * 0.01))));
     },
 
     icons(){
-      this.super$icons();
       return [
         this.baseRegion,
         this.region,

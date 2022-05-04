@@ -1,0 +1,15 @@
+health: 2200
+
+category: defense
+size: 2
+update: true
+sync: true
+canOverdrive: true
+outputsPower: true
+
+requirements: [
+    bronze-alloy/24
+    silver/24
+    silicon/32
+    thorium/10
+]

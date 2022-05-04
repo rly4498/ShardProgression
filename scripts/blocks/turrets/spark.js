@@ -77,8 +77,8 @@ const spark = extendContent(Turret, "spark", {
   },
 
   init(){
-    
     this.consumes.powerDynamic(build => build.requestedPowerUse());
+    
     this.super$init();
   },
 
@@ -153,8 +153,6 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
   },
   
   rebuild(table){
-    this.toggleSound.update(this.x, this.y, this.bDisabled && this.consValid() ? true : false);
-  
     table.clearChildren();
     table.table(Tex.inventory, cons(content => {
       let iconSize = spark.mIconSize, cBullet = this.currentAmmo;
@@ -335,7 +333,7 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
       this.toggleProgress = 0;
     }
       
-    this.toggleSound.update(this.x, this.y, this.bDisabled && this.consValid() ? true : false);
+    this.toggleSound.update(this.x, this.y, this.bDisabled && this.consValid());
   },
 
   shoot(type){
@@ -457,14 +455,7 @@ spark.buildType = () => extend(Turret.TurretBuild, spark, {
     this.super$read(read, revision);
     this.cMode = read.s();
     this.toggleProgress = read.s();
+    this.bDisabled = read.bool();
+    this.extended = read.bool();
    },
-  
-   readAll(read, revision){
-    this.super$readAll(read, revision);
-  
-    if(revision == 1){
-      this.bDisabled = read.bool();
-      this.extended = read.bool();
-    }
-  }
 });

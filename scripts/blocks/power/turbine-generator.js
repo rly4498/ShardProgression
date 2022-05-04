@@ -5,17 +5,15 @@ function nFixed(num, place){
   return parseFloat(num.toFixed(place));
 }
 
-const tg = extendContent(PowerGenerator, "turbine-generator", {
-  powerProduction: 9.5,
-  minItemEfficiency: 0.2,
+const tg = extendContent(BurnerGenerator, "turbine-generator", {
+  powerProduction: 7.7,
   itemDuration: 60,
-  randomlyExplode: true,
   
   explodeEffect: Fx.generatespark,
   generateEffect: Fx.generatespark,
   heatColor: Color.valueOf("ff9b59"),
   
-  waterProdRate: 0,
+  waterProdRate: 1.8 * 60,
   waterProd: 0.5,
   pumpAmount: 0.025,
   
@@ -23,9 +21,8 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
   waterPenalty: 0.5,
   
   init(){
-    this.consumes.add(new ConsumeItemFilter(boolf(item => item.flammability >= this.minItemEfficiency)));
-    this.waterProdRate = 108 / (this.powerProduction * 60);
-    
+    this.waterProdRate /= (this.powerProduction * 60);
+
     this.super$init();
   },
   
@@ -40,7 +37,7 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
     this.topRegion = Core.atlas.find(this.name + "-top");
   },
   
-  isWater(floor){
+  isLiquidTile(floor){
     return floor.isLiquid &&
     floor.liquidDrop != null &&
     floor.liquidDrop.canExtinguish() &&
@@ -53,7 +50,8 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
 
     tile.getLinkedTilesAs(block, block.tempTiles).each(cTile => {
       let cFloor = cTile.floor();
-      if(tg.isWater(cFloor)){
+
+      if(this.isLiquidTile(cFloor)){
         count += cFloor.isDeep() && cFloor !== tw ? prod + (prod / 2) : prod;
         if(cFloor.liquidDrop === Liquids.water) amount += cFloor.liquidMultiplier;
       }
@@ -63,9 +61,8 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
     return attr;
   },
 
-  onWater: false,
   getRequestRegion(req, list){
-    if(!this.onWater){
+    if(!this.onLiquid){
       return Core.atlas.find(this.name + "-icon1");
     }
 
@@ -87,22 +84,22 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
     }
   },
 
-  count: 0,
+  onLiquid: false,
   drawPlace(x, y, rotation, valid){
     this.super$drawPlace(x, y, rotation, valid);
-    let isPlaced = rotation == 4 ? true : false;
+    this.onLiquid = rotation == 5 ? true : false;
+    let isPlaced = rotation > 4;
     let size = this.size, t = Vars.world.tile(x, y);
-    let amount = 0;
-    this.onWater = false;
+    let amount = 0, count = 0;
     
 		if(t != null){
       if(!isPlaced){
         let attr = this.wAttribute(t, this);
-        this.count = 0, this.count = attr[0], amount = attr[1];
+        count = attr[0], amount = attr[1];
+        this.onLiquid = count > 0 || amount > 0;
       }
 
-		  if(this.count > 0 || amount > 0){
-        this.onWater = true;
+		  if(this.onLiquid){
 		    for(let i = 0; i < size; i++){
           for(let j = 0; j < 4; j++){
             let point = Tmp.p1;
@@ -111,11 +108,11 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
             
             if(nt != null){
               let lcolor = valid ? Pal.placing : Pal.remove;
-              if(nt.block() !== Blocks.air && nt.block().solid && this.isWater(nt.floor())){
+              if(nt.block() !== Blocks.air && nt.solid() && this.isLiquidTile(nt.floor())){
                 lcolor = Pal.remove;
                 let penaltyMultiplier = nt.block().size > 1 ? 2 : 1;
                 
-                this.count -= this.waterPenalty * penaltyMultiplier;
+                count -= this.waterPenalty * penaltyMultiplier;
                 amount -= this.amountPenalty * penaltyMultiplier;
               }
               
@@ -127,9 +124,10 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
 
       if(!isPlaced){
         t.getLinkedTilesAs(this, this.tempTiles).each(cTile => {
-          if(this.isWater(cTile.floor())){
-            let v = valid && this.count > 0 ? true : false;
-            
+          if(this.isLiquidTile(cTile.floor())){
+            let liquid = this.consumes.get(ConsumeType.liquid).liquid;
+            let v = valid && count > 0 ? true : false;
+            let textOffset = amount > 0 ? 2 : 0;
             if(amount > 0){
               let width = this.drawPlaceText(Core.bundle.format("stats.shards-progress.passivespeed", amount * this.pumpAmount * 60, 0), x, y + 1, v);
               let dx = x * tilesize + this.offset - width / 2 - 4,
@@ -137,12 +135,12 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
               let s = Vars.iconSmall / 4;
             
               Draw.mixcol(Color.darkGray, 1);
-              Draw.rect(Liquids.water.fullIcon, dx, dy - 1, s, s);
+              Draw.rect(liquid.fullIcon, dx, dy - 1, s, s);
               Draw.reset();
-              Draw.rect(Liquids.water.fullIcon, dx, dy, s, s);
+              Draw.rect(liquid.fullIcon, dx, dy, s, s);
             }
             
-            this.drawPlaceText(Core.bundle.formatFloat("bar.efficiency", this.count * 100, 1), x, y + 2, v);
+            this.drawPlaceText(Core.bundle.formatFloat("bar.efficiency", count * 100, 1), x, y + textOffset, v);
           }
         });
       }
@@ -157,12 +155,10 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
     
     this.stats.remove(Stat.basePowerGeneration);
     this.stats.add(this.generationType, "  [lightgray]Hydro Base Power Generation:[] " + powerProduction * prodRate + " power units/second /\n" 
-    + "  [lightgray]Steam Base Power Generation:[] " + nFixed(powerProduction * (1 -prodRate), 3) + " power units/second");
-    
-    this.stats.add(Stat.productionTime, this.itemDuration / 60, StatUnit.seconds);
+    + "  [lightgray]Steam Base Power Generation:[] " + nFixed(powerProduction, 4) + " power units/second");
     
     Vars.content.blocks().each(b => {
-      if(this.isWater(b)){
+      if(this.isLiquidTile(b)){
         let efficiency = b.isDeep() && b !== tw ? (prod + (prod / 2)) * size * size : prod * size * size;
         this.stats.add(Stat.tiles, StatValues.blockEfficiency(b, efficiency, true));
       }
@@ -170,15 +166,15 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
     
     this.stats.add(Stat.affinities, wPenalty * 100 + "% to " + wPenalty * 100 * 2 + 
     "% [scarlet]-Efficiency[] and " + aPenalty + " to " + aPenalty * 2 + " liquid units [scarlet]-Passive Speed []\n per nearby block (scales with nearby block size)" + 
-    "\n\n [lightgray]Passive Speed:[] " + 60 * this.pumpAmount + " liquid units/second per water tile");
+    "\n\n [lightgray]Passive Speed:[] " + 60 * this.pumpAmount + " liquid units/second per liquid tile");
   },
   
   setBars(){
     this.super$setBars();
     this.bars.add("efficiency", func(e => 
       new Bar(prov(() =>
-      Core.bundle.format("bar.efficiency", Mathf.floor(this.count * 100))),
-      prov(() => Pal.lightOrange), floatp(() => this.count))));
+      Core.bundle.format("bar.efficiency", Mathf.floor(e.waterEfficiency() * 100))),
+      prov(() => Pal.lightOrange), floatp(() => e.waterEfficiency()))));
   },
   
   icons(){
@@ -189,98 +185,60 @@ const tg = extendContent(PowerGenerator, "turbine-generator", {
   }
 });
 
-tg.buildType = () => extend(PowerGenerator.GeneratorBuild, tg, {
+tg.buildType = () => extend(BurnerGenerator.BurnerGeneratorBuild, tg, {
   wEfficiency: 0,
-  sEfficiency: 0,
+  lastEfficiency: 0,
   isUpdating: false,
   amount: 0, 
   
   onProximityUpdate(){
-   this.super$onProximityUpdate();
-   let attr = tg.wAttribute(this.tile, this);
-   let count = attr[0], size = tg.size;
-   this.amount = 0, this.amount = attr[1];
-   
-   if(count > 0 || this.amount > 0){
-		 for(let i = 0; i < size; i++){
-       for(let j = 0; j < 4; j++){
-         let point = Tmp.p1, tilesize = Vars.tilesize;
-         tg.getNearbyPos(this.x / tilesize, this.y / tilesize, j, i, point);
-         let nt = Vars.world.tile(point.x, point.y);
-         
-         if(nt != null){
-           if(nt.block() !== Blocks.air && nt.block().solid &&
-           tg.isWater(nt.floor())){
-             let penaltyMultiplier = nt.block().size > 1 ? 2 : 1;
-             
-             count -= tg.waterPenalty * penaltyMultiplier;
-             this.amount -= tg.amountPenalty * penaltyMultiplier;
-           }
-         }
-       }
-		 }
-   }
-   
-   this.wEfficiency = count > 0 ? count : 0;
-   if(!this.isUpdating) this.productionEfficiency = nFixed(this.wEfficiency * tg.waterProdRate, 3);
+    this.onProximityAdded();
+    this.updateProductionEff();
+  },
+
+  onProximityAdded(){
+   this.super$onProximityAdded();
+   this.updateProductionEff();
   },
   
   rSpeed: 0,
   fSpeed: 0,
-  heat: 0,
-  totalTime: 0,
-  onWater: false,
+  lastSolidDoors: 0,
   updateTile(){
-    let item, explosiveness = 0;
-    let size = tg.size;
-    let rotateSpeed = nFixed(this.sEfficiency * (1 - tg.waterProdRate), 3) + nFixed(this.wEfficiency * tg.waterProdRate, 3) * 2 / 2;
+    if(this.generateTime <= 0){
+      this.isUpdated = false;
+    }
+    this.super$updateTile();
+    let solidDoors = 0;
+    let rotateSpeed = nFixed(this.productionEfficiency * (1 - tg.waterProdRate), 3) + nFixed(this.wEfficiency * tg.waterProdRate, 3) * 2 / 2;
     this.rSpeed = Mathf.lerpDelta(this.rSpeed, this.wEfficiency >= 0.2 ? 1 : rotateSpeed, 0.05);
     this.fSpeed += this.rSpeed * Time.delta;
-    this.heat = Mathf.lerpDelta(this.heat, this.generateTime >= 0.001 && this.consValid() ? 1 : 0, 0.05);
-    this.totalTime += this.heat * Time.delta;
-    this.tile.getLinkedTilesAs(this.tile.block(), this.tile.block().tempTiles).each(cTile => {
-       this.onWater = tg.isWater(cTile.floor());
-    }); 
 
     if(this.amount > 0){
       let maxPump = Math.min(tg.liquidCapacity - this.liquids.total(), this.amount * tg.pumpAmount * this.edelta());
-      this.liquids.add(Liquids.water, maxPump);
+      this.liquids.add(tg.consumes.get(ConsumeType.liquid).liquid, maxPump);
     }
     
-    if(!this.consValid()){ 
-      this.sEfficiency = 0;
-      this.productionEfficiency = nFixed(this.wEfficiency * tg.waterProdRate, 3);
-      return;
-    }
-
-    if(this.items.total() > 0 && this.generateTime <= 0){
-      item = this.items.take();
-      explosiveness = item.explosiveness;
-      this.sEfficiency = item.flammability;
-      this.productionEfficiency = nFixed(this.sEfficiency * (1 - tg.waterProdRate), 3) + nFixed(this.wEfficiency * tg.waterProdRate, 3);
-      this.generateTime = 1;
-      
-      tg.generateEffect.at(this.x + Mathf.range(3), this.y + Mathf.range(3));
-      
-    }
-
-    if(this.generateTime > 0){
-      this.generateTime -= Math.min(1 / tg.itemDuration * this.delta() * this.power.graph.getUsageFraction(), this.generateTime);
-      
-      if(tg.randomlyExplode && 
-      Vars.state.rules.reactorExplosions && 
-      Mathf.chance(this.delta() * 0.06 * Mathf.clamp(explosiveness - 0.5))){
-        Core.app.post(() => {
-        this.damage(Mathf.random(11));
-        
-        tg.explodeEffect.at(this.x + Mathf.range(size * tilesize / 2), this.y + Mathf.range(size * tilesize / 2));
-        });
+    
+    if(this.onLiquid){
+      this.proximity.each(nearby => {
+        if(nearby.block instanceof Door || nearby.block.solidifes){
+          if(nearby.checkSolid() && tg.isLiquidTile(nearby.floor())){
+            solidDoors += 1;
+          }
+        } 
+      });
+    
+      if(this.lastSolidDoors != solidDoors){
+        this.lastSolidDoors = solidDoors;
+        this.updateProductionEff();
       }
-    }else{
-      this.sEfficiency = 0;
-      this.productionEfficiency = nFixed(this.wEfficiency * tg.waterProdRate, 3);
     }
-    this.isUpdating = true;
+
+    if(!this.isUpdated){ 
+      this.isUpdated = true;
+        this.productionEfficiency += nFixed(this.wEfficiency * tg.waterProdRate, 4);
+    }
   },
   
   draw(){
@@ -290,7 +248,7 @@ tg.buildType = () => extend(PowerGenerator.GeneratorBuild, tg, {
     Draw.color();
 
     Draw.z(Layer.block);
-    if(!this.onWater) Draw.rect(tg.bottomRegion, this.x, this.y);
+    if(!this.onLiquid) Draw.rect(tg.bottomRegion, this.x, this.y);
     Draw.rect(tg.region, this.x, this.y);
 
     Draw.color(tg.heatColor);
@@ -304,6 +262,42 @@ tg.buildType = () => extend(PowerGenerator.GeneratorBuild, tg, {
   },
 
   drawSelect(){
-    tg.drawPlace(this.x / 8, this.y / 8, 4, true);
+    let drawLines = this.onLiquid ? 5 : 6;
+    tg.drawPlace(this.x / 8, this.y / 8, drawLines, true);
+  },
+
+  onLiquid: false,
+  updateProductionEff(){
+    let attr = tg.wAttribute(this.tile, this);
+    let count = attr[0], size = tg.size;
+    this.amount = attr[1];
+    this.onLiquid = count > 0 || this.amount > 0;
+    
+    if(count > 0 || this.amount > 0){
+      for(let i = 0; i < size; i++){
+        for(let j = 0; j < 4; j++){
+          let point = Tmp.p1, tilesize = Vars.tilesize;
+          tg.getNearbyPos(this.x / tilesize, this.y / tilesize, j, i, point);
+          let nt = Vars.world.tile(point.x, point.y);
+          
+          if(nt != null){
+            if(nt.block() !== Blocks.air && nt.solid() &&
+            tg.isLiquidTile(nt.floor())){
+              let penaltyMultiplier = nt.block().size > 1 ? 2 : 1;
+              
+              count -= tg.waterPenalty * penaltyMultiplier;
+              this.amount -= tg.amountPenalty * penaltyMultiplier;
+            }
+          }
+        }
+      }
+    }
+    
+    this.wEfficiency = count > 0 ? count : 0;
+    this.isUpdated = false;
+  },
+
+  waterEfficiency(){
+    return this.wEfficiency;
   }
 });
